@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Data / model artifacts (too large for the repo — see README)
+data/
+checkpoints/
+*.ckpt
+logs/
+output/
+wandb/
+
+# Local secrets
+.env
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jam_transformer"
+version = "0.1.0"
+description = "Symbolic vocal-melody → accompaniment Transformer."
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1",
+    "miditoolkit>=1.0.0",
+    "pretty_midi>=0.2.10",
+    "numpy",
+    "pyyaml",
+    "tqdm",
+    "loguru",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+prepare = [
+    # MIDI preprocessing pipeline dependencies (scripts/prepare_data.py)
+    "pyyaml",                # Slakh metadata.yaml parsing
+    "numpy",                 # chord/key extraction
+    # midi-miner melody classifier (RandomForest, not on PyPI):
+    #   git clone https://github.com/ruiguo-bio/midi-miner
+    #   pip install -e ./midi-miner
+    # Its runtime deps (must match midi-miner/requirements.txt):
+    "coloredlogs",
+    "scikit-learn>=1.3",
+    "pandas>=2.0",
+    "scipy>=1.11",
+    "mido>=1.2",
+]
+train = [
+    "pytorch-lightning>=2.2",  # LightningModule, Trainer, callbacks
+    "wandb",                   # experiment tracking (optional but recommended)
+]
+dev = [
+    "pytest",
+    "pytest-timeout",   # @pytest.mark.timeout used in test_dynamics.py
+    "zstandard",        # package_for_server.py --compress zst (default)
+]
+render = [
+    "pyfluidsynth",       # optional MIDI → WAV at inference time
+    "scipy",
+    "pedalboard",         # DSP effects chain (reverb, compressor, limiter)
+    "soundfile",          # audio I/O for pedalboard
+]
+audio = [
+    "basic-pitch",        # audio (WAV/MP3) → MIDI transcription at inference time
+    "sounddevice",        # microphone recording (--mic_input)
+    "scipy",              # WAV file write for mic recording
+    "noisereduce",        # spectral noise reduction (--denoise)
+]
+demo = [
+    "gradio>=4.0",        # web demo (app.py)
+    "librosa",            # BPM auto-detection in loop station mode
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+# Put the project root on sys.path so tests can `from scripts.prepare_data import …`
+# (scripts/ is a namespace dir, not an installed package). Replaces the old
+# root-level conftest.py sys.path hack; conftest.py now lives under tests/.
+pythonpath = ["."]
+testpaths = ["tests"]
