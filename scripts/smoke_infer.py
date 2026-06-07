@@ -24,9 +24,11 @@ import numpy as np
 import torch
 from scipy.io import wavfile
 
+from dataclasses import replace
+
 from jam_transformer.tokenizer import build_tokenizer, NoteEvent
 from jam_transformer.pipeline import load_checkpoint, generate_accompaniment
-from jam_transformer.utils.midi_io import events_to_midi
+from jam_transformer.utils.midi_io import events_to_midi, midi_to_events
 from jam_transformer.utils.audio import render_midi_to_wav
 
 
@@ -35,6 +37,10 @@ def main() -> int:
     ap.add_argument("--checkpoint", default="checkpoints/best-epoch=007-val_loss=0.8431.ckpt")
     ap.add_argument("--config", default="configs/config.yaml")
     ap.add_argument("--out", default="output/smoke")
+    ap.add_argument("--melody", default="",
+                    help="real melody MIDI to accompany (default: synthetic 4-bar motif)")
+    ap.add_argument("--max_bars", type=int, default=0,
+                    help="cap the input melody to its first N bars (0 = full)")
     args = ap.parse_args()
 
     cfg = load_config(args.config); cfg.model.compile = False
@@ -45,14 +51,23 @@ def main() -> int:
     lit = load_checkpoint(args.checkpoint, cfg, tok.vocab_size); lit.eval(); lit.to(device)
     print(f"[2/5] checkpoint loaded: {Path(args.checkpoint).name}")
 
-    # tiny 4-bar melody: a quarter-note motif per bar
-    motif = [60, 62, 64, 67]   # C D E G
-    mel = [NoteEvent(track="melody", bar=b, position=i * 4, pitch=p, duration=4, velocity=80)
-           for b in range(4) for i, p in enumerate(motif)]
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
     mel_mid = Path(tempfile.mktemp(suffix=".mid"))
-    events_to_midi(mel, cfg.tokenizer, tempo_bpm=100).dump(str(mel_mid))
-    print(f"[3/5] built {len(mel)}-note test melody (4 bars)")
+    if args.melody:
+        events, mtempo = midi_to_events(Path(args.melody), cfg.tokenizer)
+        mel = [e for e in events if e.track == "melody"]
+        if not mel:                                   # no named melody track → use all
+            mel = [replace(e, track="melody") for e in events]
+        if args.max_bars > 0:
+            mel = [e for e in mel if e.bar < args.max_bars]
+        events_to_midi(mel, cfg.tokenizer, tempo_bpm=mtempo).dump(str(mel_mid))
+        print(f"[3/5] loaded melody from {Path(args.melody).name}: {len(mel)} notes")
+    else:
+        motif = [60, 62, 64, 67]   # C D E G
+        mel = [NoteEvent(track="melody", bar=b, position=i * 4, pitch=p, duration=4, velocity=80)
+               for b in range(4) for i, p in enumerate(motif)]
+        events_to_midi(mel, cfg.tokenizer, tempo_bpm=100).dump(str(mel_mid))
+        print(f"[3/5] built {len(mel)}-note synthetic test melody (4 bars)")
 
     midi, tempo = generate_accompaniment(mel_mid, cfg, lit, tok, ["melody"])
     acc = sum(len(i.notes) for i in midi.instruments if (i.name or "").upper() != "MELODY")
