@@ -24,10 +24,12 @@ Python 3.11, PyTorch 2.4 (CUDA) 기준. WAV 렌더링은 `pyfluidsynth` + 사운
 
 ## 데모 (가장 빠르게 확인)
 ```bash
-python app.py --checkpoint <best-epoch=007.ckpt>
+python app.py --checkpoint "checkpoints/best-epoch=007-val_loss=0.8431.ckpt"
 ```
 브라우저에서 멜로디 MIDI를 넣으면 반주를 생성하고 입력/반주/믹스 WAV를 들려줍니다.
-> 모델 체크포인트(약 434MB)는 용량상 repo에 포함하지 않았습니다. 별도 제공 파일을 사용하세요.
+> 제출 모델 2개가 `checkpoints/`에 들어 있습니다: **ep7**(리듬 분산이 가장 GT스러움, 권장)과
+> **ep15**(화음이 얇고 화성이 풍부). 각 ~434MB라 **GitHub에는 올리지 않고(파일당 100MB 제한)
+> 제출 ZIP에만 포함**됩니다.
 
 ## 학습
 ```bash
@@ -59,6 +61,7 @@ scripts/train.py       학습 진입점
 scripts/analysis/      자기회귀 진단 도구
 configs/config.yaml    모든 하이퍼파라미터
 app.py                 Gradio 데모
+checkpoints/           제출 모델 ep7·ep15 (ZIP 전용, GitHub 제외)
 samples/               생성 예시 WAV
 report/report.md       보고서
 ```
