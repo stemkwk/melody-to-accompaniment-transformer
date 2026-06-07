@@ -1,0 +1,14 @@
+# Reproducible CPU inference. Put the checkpoint(s) under ./checkpoints first
+# (download from the GitHub Release), then:  docker compose up --build
+# Open http://localhost:7860
+services:
+  demo:
+    build: .
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./checkpoints:/app/checkpoints   # mount models (from the Release)
+      - ./output:/app/output             # generated MIDI/WAV land here
+    # To run the diagnostic instead of the demo, override:
+    #   docker compose run --rm demo python scripts/analysis/generation_rhythm_stats.py \
+    #       --checkpoint checkpoints/best-epoch=007-val_loss=0.8431.ckpt --pop909 <dir>

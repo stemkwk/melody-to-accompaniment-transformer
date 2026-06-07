@@ -1,0 +1,13 @@
+# Keep the build context small. Checkpoints are mounted at runtime, not baked.
+.git
+.gitignore
+checkpoints/
+*.ckpt
+samples/
+output/
+report/
+**/__pycache__/
+*.pyc
+*.wav
+.venv/
+venv/

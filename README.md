@@ -27,9 +27,34 @@ Python 3.11, PyTorch 2.4 (CUDA) 기준. WAV 렌더링은 `pyfluidsynth` + 사운
 python app.py --checkpoint "checkpoints/best-epoch=007-val_loss=0.8431.ckpt"
 ```
 브라우저에서 멜로디 MIDI를 넣으면 반주를 생성하고 입력/반주/믹스 WAV를 들려줍니다.
-> 제출 모델 2개가 `checkpoints/`에 들어 있습니다: **ep7**(리듬 분산이 가장 GT스러움, 권장)과
-> **ep15**(화음이 얇고 화성이 풍부). 각 ~434MB라 **GitHub에는 올리지 않고(파일당 100MB 제한)
-> 제출 ZIP에만 포함**됩니다.
+> 제출 모델 2개: **ep7**(리듬 분산이 가장 GT스러움, 권장)과 **ep15**(화음이 얇고 화성이 풍부).
+> 각 ~434MB라 GitHub repo에는 넣지 않고 **[GitHub Release](../../releases/tag/v1.0)**에 올렸습니다.
+> 다운로드 후 `checkpoints/`에 두세요:
+> ```bash
+> gh release download v1.0 --repo stemkwk/melody-to-accompaniment-transformer --dir checkpoints
+> ```
+
+## 재현 가능한 추론 (Docker 권장)
+다른 컴퓨터에서도 동일하게 동작하도록 **CPU 전용 추론 이미지**를 제공합니다 (GPU/CUDA 불필요).
+torch 버전·`fluidsynth` 시스템 라이브러리·사운드폰트를 모두 이미지에 고정해, venv로는 깨지기 쉬운
+의존성을 제거했습니다.
+```bash
+# 1) 체크포인트 받기 (Release) → checkpoints/
+gh release download v1.0 --repo stemkwk/melody-to-accompaniment-transformer --dir checkpoints
+# 2) 빌드 + 실행
+docker compose up --build          # 또는: docker build -t jam-infer . && docker run --rm -p 7860:7860 -v "$PWD/checkpoints:/app/checkpoints" jam-infer
+# 3) 브라우저에서 http://localhost:7860
+```
+**venv 대안(가벼움).** Docker가 없으면:
+```bash
+python -m venv .venv && . .venv/bin/activate   # (Windows: .venv\Scripts\activate)
+pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements-inference.txt && pip install -e . --no-deps
+python app.py --checkpoint "checkpoints/best-epoch=007-val_loss=0.8431.ckpt"
+```
+> ⚠️ venv에서 **WAV 렌더링**은 시스템 `fluidsynth` + GM 사운드폰트가 필요합니다
+> (Linux `sudo apt install fluidsynth fluid-soundfont-gm`, macOS `brew install fluid-synth`).
+> 없어도 **MIDI 생성은 됩니다** (WAV만 생략). Docker는 이 의존성이 내장되어 있습니다.
 
 ## 학습
 ```bash

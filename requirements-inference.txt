@@ -1,0 +1,27 @@
+# Pinned dependencies for REPRODUCIBLE INFERENCE (CPU).
+# Training deps (pytorch-lightning, wandb) are intentionally excluded.
+#
+# PyTorch is installed separately (CPU wheel) so this file stays index-agnostic:
+#   pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+#
+# WAV rendering also needs the system 'fluidsynth' binary + a GM soundfont
+# (Docker installs both; venv users: see README).
+
+# core
+numpy==1.26.1
+miditoolkit==1.0.1
+pretty_midi==0.2.11
+mido==1.3.3
+PyYAML==6.0.3
+loguru==0.7.3
+python-dotenv==1.2.2
+tqdm==4.67.3
+
+# MIDI -> WAV rendering (optional but recommended)
+pyfluidsynth==1.3.4
+scipy==1.12.0
+soundfile==0.13.1
+pedalboard==0.9.23
+
+# Gradio demo (app.py)
+gradio==6.14.0
